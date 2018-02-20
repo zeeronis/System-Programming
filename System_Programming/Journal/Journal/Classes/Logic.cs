@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Windows.Forms;
+using System.Threading;
 
 namespace work3.Classes
 {
@@ -12,76 +12,87 @@ namespace work3.Classes
         private readonly string PathProcessesFile = Directory.GetCurrentDirectory() + @"\LogProcesses.txt";
         private readonly string PathResultFile = Directory.GetCurrentDirectory() + @"\Result.txt";
 
+        private object locker1 = new object();
+        private object locker2 = new object();
+
         public void StartProcessTimer()
         {
-            Timer timer = new Timer();
-            timer.Interval = 10000;
-            timer.Tick += new EventHandler(WriteProcesses);
-            timer.Enabled = true;
+            new Timer(WriteProcesses, 0, 1000, 10000);
         }
-        private void WriteProcesses(object Sender, EventArgs e)
+        private void WriteProcesses(object Sender)
         {
-            using (StreamWriter sw = new StreamWriter(PathProcessesFile, true, System.Text.Encoding.Default))
+            lock (locker1)
             {
-                sw.WriteLine(Environment.NewLine + DateTime.Now.ToString());
-
-                Process[] processes = Process.GetProcesses();
-                foreach (Process process in processes)
+                using (StreamWriter sw = new StreamWriter(PathProcessesFile, true, System.Text.Encoding.Default))
                 {
-                    sw.WriteLine(process.Id + " " + process.ProcessName);
+                    sw.WriteLine(Environment.NewLine + DateTime.Now.ToString());
+
+                    Process[] processes = Process.GetProcesses();
+                    foreach (Process process in processes)
+                    {
+                        sw.WriteLine(process.Id + " " + process.ProcessName);
+                    }
                 }
             }
         }
 
         public void StartScreenshotsTimer()
         {
-            Timer timer = new Timer();
-            timer.Interval = 10000;
-            timer.Tick += new EventHandler(SaveScreenshot);
-            timer.Enabled = true;
+            new Timer(SaveScreenshot, 0, 1000, 10000);
         }
-        private void SaveScreenshot(object Sender, EventArgs e)
+        private void SaveScreenshot(object Sender)
         {
-            Bitmap screen = new Bitmap(
+            lock (locker2)
+            {
+                Bitmap screen = new Bitmap(
                 System.Windows.Forms.SystemInformation.VirtualScreen.Width,
                 System.Windows.Forms.SystemInformation.VirtualScreen.Height);
-            Graphics graphics = Graphics.FromImage(screen);
-            try
-            {
-                graphics.CopyFromScreen(
-                        System.Windows.Forms.SystemInformation.VirtualScreen.X,
-                        System.Windows.Forms.SystemInformation.VirtualScreen.Y,
-                        0, 0, screen.Size);
-                screen.Save(Directory.GetCurrentDirectory() + @"\Screenshot - "
-                        + DateTime.Now.ToString().Replace('.', '-').Replace(':', '-') + ".Bmp", ImageFormat.Bmp);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception: " + ex);
-            }
-            finally
-            {
-                graphics.Dispose();
-                screen.Dispose();
+                Graphics graphics = Graphics.FromImage(screen);
+                try
+                {
+                    graphics.CopyFromScreen(
+                            System.Windows.Forms.SystemInformation.VirtualScreen.X,
+                            System.Windows.Forms.SystemInformation.VirtualScreen.Y,
+                            0, 0, screen.Size);
+                    screen.Save(Directory.GetCurrentDirectory() + @"\Screenshot - "
+                            + DateTime.Now.ToString().Replace('.', '-').Replace(':', '-') + ".Bmp", ImageFormat.Bmp);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception: " + ex);
+                }
+                finally
+                {
+                    graphics.Dispose();
+                    screen.Dispose();
+                }
             }
         }
 
         public void StartSummarizeTimer()
         {
-            Timer timer = new Timer();
-            timer.Interval = 10000;
-            timer.Tick += new EventHandler(SaveTotals);
-            timer.Enabled = true;
+            new Timer(SaveTotals, 0, 1000, 10000);
         }
-
-        private void SaveTotals(object sender, EventArgs e)
+        private void SaveTotals(object sender)
         {
+            long countLines;
+            lock (locker1)
+            {
+                countLines = File.ReadAllLines(PathProcessesFile).LongLength;
+            }
+
+            int countScreenshots;
+            lock (locker2)
+            {
+                countScreenshots = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.bmp").Length;
+            }
+
             using (StreamWriter sw = new StreamWriter(PathResultFile, false, System.Text.Encoding.Default))
             {
-                sw.WriteLine("Lines: " + File.ReadAllLines(PathProcessesFile).LongLength);
-                sw.WriteLine("Count of screenshots: " 
-                    + Directory.GetFiles(Directory.GetCurrentDirectory(),"*.bmp").Length);
+                sw.WriteLine("Lines: " + countLines);
+                sw.WriteLine("Count of screenshots: " + countScreenshots);
             }
+
 
         }
     }
