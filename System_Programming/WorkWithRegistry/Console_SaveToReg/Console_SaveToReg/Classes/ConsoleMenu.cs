@@ -83,14 +83,35 @@ namespace Console_SaveToReg.Classes
                 switch (menuNum)
                 {
                     case 0:
-                        user.Name += symbol;
-                        break;
+                        if (user.Name != null)
+                        {
+                            if (user.Name.Length < 16)
+                            {
+                                user.Name += symbol;
+                                break;
+                            }
+                        }
+                        return;
                     case 1:
-                        user.Surname += symbol;
-                        break;
+                        if (user.Surname != null)
+                        {
+                            if (user.Surname.Length < 16)
+                            {
+                                user.Surname += symbol;
+                                break;
+                            }
+                        }
+                        return;
                     case 2:
-                        user.Patronymic += symbol;
-                        break;
+                        if (user.Patronymic != null)
+                        {
+                            if (user.Patronymic.Length < 16)
+                            {
+                                user.Patronymic += symbol;
+                                break;
+                            }
+                        }
+                        return;
                 }
                 Console.Write(symbol);
             }
