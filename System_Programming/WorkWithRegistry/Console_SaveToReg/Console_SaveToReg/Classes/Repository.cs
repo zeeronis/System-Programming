@@ -17,9 +17,9 @@ namespace Console_SaveToReg.Classes
         public static object GetKeyValueReg(string keyName)
         {
             object returnValue = null;
-            using (RegistryKey hkSoftware = Registry.CurrentUser.OpenSubKey("Software", true))
+            using (RegistryKey hkSoftware = Registry.CurrentUser.OpenSubKey("Software", false))
             {
-                using (RegistryKey hkTest = hkSoftware.OpenSubKey("TestWriteToReg", true))
+                using (RegistryKey hkTest = hkSoftware.OpenSubKey("TestWriteToReg", false))
                 {
                     if (hkTest != null)
                     {

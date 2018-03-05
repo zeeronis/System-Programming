@@ -22,9 +22,9 @@ namespace Console_SaveToReg.Classes
 
         public void DrawMenu()
         {
-            Console.Clear();
             Console.BackgroundColor = user.BackgroundColor;
             Console.ForegroundColor = user.ForegroundColor;
+            Console.Clear();
 
             string newStr = " -> Name: " + user.Name + Environment.NewLine;
             newStr += "    Surname: " + user.Surname + Environment.NewLine;
@@ -83,45 +83,21 @@ namespace Console_SaveToReg.Classes
                 switch (menuNum)
                 {
                     case 0:
-                        if (user.Name != null)
-                        {
-                            if (user.Name.Length < 16)
-                            {
-                                user.Name += symbol;
-                                break;
-                            }
-                        }
-                        else
+                        if (user.Name.Length < 16)
                         {
                             user.Name += symbol;
                             break;
                         }
                         return;
                     case 1:
-                        if (user.Surname != null)
-                        {
-                            if (user.Surname.Length < 16)
-                            {
-                                user.Surname += symbol;
-                                break;
-                            }
-                        }
-                        else
+                        if (user.Surname.Length < 16)
                         {
                             user.Surname += symbol;
                             break;
                         }
                         return;
                     case 2:
-                        if (user.Patronymic != null)
-                        {
-                            if (user.Patronymic.Length < 16)
-                            {
-                                user.Patronymic += symbol;
-                                break;
-                            }
-                        }
-                        else
+                        if (user.Patronymic.Length < 16)
                         {
                             user.Patronymic += symbol;
                             break;

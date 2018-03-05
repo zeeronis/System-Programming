@@ -76,43 +76,44 @@ namespace Console_SaveToReg.Classes
             {
                 Name = (string)value;
             }
+            else
+            { Name = String.Empty; }
 
             if ((value = Repository.GetKeyValueReg(GetStringOfuserType(userTypes.Surname))) != null)
             {
                 Surname = (string)value;
             }
+            else
+            { Surname = String.Empty; }
+
             if ((value = Repository.GetKeyValueReg(GetStringOfuserType(userTypes.Patronymic))) != null)
 
             {
                 Patronymic = (string)value;
             }
+            else
+            { Patronymic = String.Empty; }
 
             if ((value = Repository.GetKeyValueReg(GetStringOfuserType(userTypes.Gender))) != null)
             {
                 Gender = (UserGender)value;
             }
             else
-            {
-                Gender = UserGender.None;
-            }
+            { Gender = UserGender.None; }
 
             if ((value = Repository.GetKeyValueReg(GetStringOfuserType(userTypes.ForegroundColor))) != null)
             {
                 ForegroundColor = (ConsoleColor)value;
             }
             else
-            {
-                ForegroundColor = Console.ForegroundColor;
-            }
+            { ForegroundColor = Console.ForegroundColor;  }
 
             if ((value = Repository.GetKeyValueReg(GetStringOfuserType(userTypes.BackgroundColor))) != null)
             {
                 BackgroundColor = (ConsoleColor)value;
             }
             else
-            {
-                BackgroundColor = Console.BackgroundColor;
-            }
+            { BackgroundColor = Console.BackgroundColor; }
 
         }
 
@@ -121,6 +122,7 @@ namespace Console_SaveToReg.Classes
             return Enum.GetName(typeof(userTypes), type);
         }
     }
+
     public enum userTypes
     {
         Name,
@@ -130,7 +132,6 @@ namespace Console_SaveToReg.Classes
         ForegroundColor,
         BackgroundColor
     }
-
     public enum UserGender
     {
         None = 0,
