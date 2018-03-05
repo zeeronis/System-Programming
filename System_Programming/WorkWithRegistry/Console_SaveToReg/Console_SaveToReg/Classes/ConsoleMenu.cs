@@ -91,6 +91,11 @@ namespace Console_SaveToReg.Classes
                                 break;
                             }
                         }
+                        else
+                        {
+                            user.Name += symbol;
+                            break;
+                        }
                         return;
                     case 1:
                         if (user.Surname != null)
@@ -101,6 +106,11 @@ namespace Console_SaveToReg.Classes
                                 break;
                             }
                         }
+                        else
+                        {
+                            user.Surname += symbol;
+                            break;
+                        }
                         return;
                     case 2:
                         if (user.Patronymic != null)
@@ -110,6 +120,11 @@ namespace Console_SaveToReg.Classes
                                 user.Patronymic += symbol;
                                 break;
                             }
+                        }
+                        else
+                        {
+                            user.Patronymic += symbol;
+                            break;
                         }
                         return;
                 }
