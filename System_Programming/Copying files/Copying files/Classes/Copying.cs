@@ -19,8 +19,8 @@ namespace Copying_files.Classes
         CancellationToken token;
 
         IProgress<int> Progress;
-        private Task WriteTask;
-        private Task ReadTask;
+        private Thread WriteTask;
+        private Thread ReadTask;
 
         public Copying(IProgress<int> progress)
         {
@@ -53,23 +53,11 @@ namespace Copying_files.Classes
             {
                 MaxValue = (int)Math.Ceiling(readStream.Length / (double)bufferSize);
             }
-
-
-            ReadTask = new Task(() => Read(), token);
+            ReadTask = new Thread(Read);
             ReadTask.Start();
 
-            WriteTask = new Task(() => Write(), token);
+            WriteTask = new Thread(Write);
             WriteTask.Start();
-
-            WriteTask.ContinueWith(t => MessageBox.Show("Copying done!"),
-                TaskContinuationOptions.OnlyOnRanToCompletion);
-
-            WriteTask.ContinueWith(t => 
-            {
-                File.Delete(pathForPaste + Path.GetFileName(pathForCopy));
-                MessageBox.Show("Canceled");
-                CopyingIsComplete = true;
-            },TaskContinuationOptions.OnlyOnCanceled);
 
             return MaxValue;
         }
