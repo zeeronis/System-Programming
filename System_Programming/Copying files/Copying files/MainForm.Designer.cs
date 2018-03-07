@@ -87,6 +87,7 @@
             this.TbPathCopy.Name = "TbPathCopy";
             this.TbPathCopy.Size = new System.Drawing.Size(312, 93);
             this.TbPathCopy.TabIndex = 3;
+            this.TbPathCopy.Text = "D:\\1";
             // 
             // BtnStartCopy
             // 

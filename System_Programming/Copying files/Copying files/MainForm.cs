@@ -10,7 +10,7 @@ namespace Copying_files
         public MainForm()
         {
             InitializeComponent();
-            progress = new Progress<int>(percent => pbCopying.Value = percent);
+            progress = new Progress<int>(percent => pbCopying.Value += percent);
             copying = new Copying(progress);
         }
 
@@ -22,20 +22,22 @@ namespace Copying_files
             {
                 if (Directory.Exists(TbPathPaste.Text))
                 {
-                    pbCopying.Value = 0;
-                    pbCopying.Maximum = (int)copying.StartCopying(TbPathCopy.Lines, TbPathPaste.Text);
+                    if (TbPathCopy.Lines.Length == 1 && Directory.Exists(TbPathCopy.Lines[0]))
+                    {
+                        pbCopying.Value = 0;
+                        copying.CopyDirrectry(TbPathCopy.Lines[0], TbPathPaste.Text);
+                    }
+                    else
+                    {
+                        pbCopying.Value = 0;
+                        pbCopying.Maximum = (int)copying.StartCopying(TbPathCopy.Lines, TbPathPaste.Text);
+                    }
                 }
                 else
                 {
                     MessageBox.Show("path or file don't found");
                 }
             }
-        }
-
-        private void UpdatePB(int MinValue, int MaxValue)
-        {
-            pbCopying.Value = MinValue;
-            pbCopying.Maximum = MaxValue;
         }
 
         private void BtnFileCopy_Click(object sender, EventArgs e)
@@ -65,7 +67,7 @@ namespace Copying_files
             {
                 if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                 {
-                    TbPathPaste.Text = folderBrowserDialog.SelectedPath;
+                     TbPathCopy.Text = folderBrowserDialog.SelectedPath;
                 }
             }
         }

@@ -18,7 +18,7 @@ namespace Copying_files.Classes
         CancellationTokenSource tokenSource = new CancellationTokenSource();
         CancellationToken token;
 
-        IProgress<int> Progress;
+        public IProgress<int> Progress;
         private Task WriteTask;
         private Task ReadTask;
 
@@ -54,7 +54,7 @@ namespace Copying_files.Classes
                 MaxLenght += new FileInfo(file).Length; 
             }
 
-            var task = new TaskFactory(token).StartNew(Paths => 
+            var task = new Task(Paths => 
             {
                 foreach (var path in (string[])Paths)
                 {
@@ -67,13 +67,14 @@ namespace Copying_files.Classes
                     WriteTask.Start();
 
                     Task.WaitAny(ReadTask, WriteTask);
-                    if (WriteTask.Status == TaskStatus.Canceled || WriteTask.Status == TaskStatus.Canceled)
+                    if (token.IsCancellationRequested)
                     {
                         token.ThrowIfCancellationRequested();
+                        return;
                     }
                 }
-            },copyingPaths);
-
+            }, copyingPaths, token);
+            task.Start();
 
             task.ContinueWith(t => MessageBox.Show("Copying done!"),
                 TaskContinuationOptions.OnlyOnRanToCompletion);
@@ -87,12 +88,93 @@ namespace Copying_files.Classes
 
             return MaxLenght;
         }
+        public void CopyDirrectry(string copyingPath, string pastePath)
+        {
+            pathForCopy = copyingPath;
+            pathForPaste = pastePath;
+
+            var task = new Task(() => { CopyAllDepth(pathForCopy, pathForPaste); }, token);
+            task.Start();
+        }
+
+        private void CopyAllDepth(string copyPath, string pastePath)
+        {
+            Directory.CreateDirectory(pastePath + new DirectoryInfo(copyPath).Name);
+            pathForPaste = pastePath + new DirectoryInfo(copyPath).Name + @"\";
+
+            var entities = Directory.EnumerateFiles(copyPath, "*");
+            foreach (var item in entities)
+            {
+                pathForCopy = item;
+                ReadTask = new Task(() => Read(), token);
+                ReadTask.Start();
+
+                WriteTask = new Task(() => Write(), token);
+                WriteTask.Start();
+
+                Task.WaitAny(ReadTask, WriteTask);
+
+
+                if (token.IsCancellationRequested)
+                {
+                    token.ThrowIfCancellationRequested();
+                    return;
+                }
+            }
+
+            entities = Directory.EnumerateDirectories(copyPath, "*");
+            foreach (var item in entities)
+            {
+                CopyAllDepth(item, pastePath + new DirectoryInfo(copyPath).Name + @"\" + new DirectoryInfo(item).Name);
+            }
+        }
+
+        /*
+         pathForPaste = pastePath +  new DirectoryInfo(copyPath).Name;
+            Directory.CreateDirectory(pathForPaste);
+            pathForPaste += @"\";
+
+            var entities = Directory.EnumerateFiles(copyPath, "*");
+            foreach (var item in entities)
+            {
+                pathForCopy = item;
+                ReadTask = new Task(() => Read(), token);
+                ReadTask.Start();
+
+                WriteTask = new Task(() => Write(), token);
+                WriteTask.Start();
+
+                Task.WaitAny(ReadTask, WriteTask);
+
+
+                if (token.IsCancellationRequested)
+                {
+                    token.ThrowIfCancellationRequested();
+                    return;
+                }
+            }
+
+            entities = Directory.EnumerateDirectories(copyPath, "*");
+            foreach (var item in entities)
+            {
+                pathForCopy = item + @"\";
+                CopyAllDepth(item, pastePath + new DirectoryInfo(copyPath).Name);
+                if (token.IsCancellationRequested)
+                {
+                    token.ThrowIfCancellationRequested();
+                    return;
+                }
+            }
+             
+             */
+
         private void Read()
         {
             using (FileStream readStream = new FileStream(pathForCopy, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize, true))
             {
                 if (readStream.Length > bufferSize)
                 {
+                    buffer = new byte[bufferSize];
                     long currPoss;
                     for (currPoss = 0; currPoss < Math.Truncate((double)readStream.Length / bufferSize); currPoss++)
                     {
@@ -100,20 +182,14 @@ namespace Copying_files.Classes
 
                         autoResetEvent.Set();
                         autoResetEvent.WaitOne();
-                        Progress.Report((int)currPoss);
-                        if (token.IsCancellationRequested)
-                        {
-                            autoResetEvent.Set();
-                            token.ThrowIfCancellationRequested();
-                            return;
-                        } 
+                        Progress.Report(1);
                     }
                     if (currPoss * bufferSize < readStream.Length)
                     {
                         buffer = new byte[readStream.Length - currPoss * bufferSize];
                         readStream.Read(buffer, 0, (int)(readStream.Length - currPoss * bufferSize));
                     }
-                    Progress.Report((int)currPoss);
+                    Progress.Report(1);
                 }
                 else
                 {
@@ -133,12 +209,6 @@ namespace Copying_files.Classes
                 do
                 {
                     autoResetEvent.WaitOne();
-                    if (token.IsCancellationRequested)
-                    {
-                        autoResetEvent.Set();
-                        token.ThrowIfCancellationRequested();
-                        return;
-                    } 
 
                     writeStream.Write(buffer, 0, (buffer.Length));
                     autoResetEvent.Set();
